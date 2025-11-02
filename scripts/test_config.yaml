@@ -1,0 +1,96 @@
+# Test Generation Configuration File
+# This file defines the structure and parameters for generating tests from the question bank
+
+# General test settings
+test_settings:
+  title: "Test de laborator PCLP"
+  subtitle: ""
+  time_limit_minutes: 90
+  total_points: 100
+  bonus_points: 20
+
+  # Output settings
+  output_format: "both" # Options: markdown, pdf, html, docx, both (md+pdf)
+  output_filename: "test_laborator.md"
+  output_directory: "out" # Directory to save generated files
+  include_answers: true # Whether to generate an answer key
+  shuffle_questions: false # Keep questions sorted by difficulty (easiest to hardest)
+  shuffle_options: true # For multiple choice, randomize answer options
+
+# Question selection criteria
+question_selection:
+  # * will select all
+  categories:
+  - basic_math
+  - "*"
+  # Question type preference (to avoid duplicates with same hash)
+  preferred_question_types:
+  - multiple_choice
+  - short_answer
+  - free_text
+  - code
+  - essay
+  # Difficulty and Points Configuration
+  difficulty_config:
+    # Number of questions per difficulty level
+    difficulty_distribution:
+      Trivial: 2
+      Easy: 3
+      Medium: 2
+      Hard: 3
+      Very Hard: 2
+
+    # Points per question (all questions worth the same)
+    points_per_question: 10
+  # Question formatting options
+question_format:
+  numbering_style: "numeric" # Options: numeric (1, 2, 3), alphabetic (a, b, c), roman (i, ii, iii)
+  include_difficulty_label: false # Show difficulty level with each question
+  include_source_label: false # Show source (e.g., Lab 1/2) with each question
+  include_category_label: false # Show category with each question
+
+  # Code formatting
+  code_block_style: "inline" # Options: inline (use backticks), block (use code fences)
+  preserve_formatting: true # Preserve markdown formatting from questions
+
+# Header and footer customization
+header:
+  include: false
+  content: |
+    **Universitatea Politehnica București**
+    **Facultatea de Automatică și Calculatoare**
+
+    ---
+
+    **Nume și Prenume:** ___________________________
+
+    **Grupă:** _______________  **Data:** _______________
+
+    ---
+
+footer:
+  include: true
+  content: |
+    ---
+
+    **Notă:** Răspunsurile trebuie să fie clare și concise. Folosiți sintaxa Python corectă.
+
+# Advanced options
+advanced:
+  # Random seed for reproducibility (use same seed to generate identical tests)
+  random_seed: 1 # null for random, or specify an integer like 42
+
+  # Ensure no duplicate questions in the same test
+  allow_duplicates: false
+
+  # Minimum spacing between similar questions (by category)
+  min_category_spacing: 2
+
+  # Generate multiple variants
+  generate_variants: true
+  num_variants: 3
+  variant_suffix: "_variant_{n}" # Placeholder {n} will be replaced with variant number
+
+  # physical paper size for PDF output
+  paper_size: "A4" # Options: A4, Letter
+  generate_openbook_cheat_sheets: true # the cheatsheet will contain concise info for students to use during the test without internet access

@@ -1,0 +1,26 @@
+# mappings for student-readable names
+categories:
+  basic_math: Basic Math
+  bitwise_operations: Bitwise Operations
+  data_types_and_variables: Data Types and Variables
+  general: General
+  logic_and_control_flow: Logic and Control Flow
+  math_module: Math Module
+  python_basics: Python Basics
+  string_manipulation: String Manipulation
+columns:
+  category: Category
+  hash: Hash
+  type: Type
+  difficulty: Difficulty
+  question: Question
+difficulty_levels:
+  trivial: Trivial
+  easy: Easy
+  medium: Medium
+  hard: Hard
+  very_hard: Very Hard
+question_types:
+  short_answer: Short Answer
+  multiple_choice: Multiple Choice
+  free_text: Free Text Answer

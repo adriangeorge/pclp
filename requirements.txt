@@ -1,0 +1,34 @@
+# Python requirements for PCLP Test Generation System
+# Cross-platform compatible dependencies
+
+# PDF generation
+reportlab>=3.6.0
+
+# Data manipulation
+pandas>=1.3.0
+
+# YAML configuration
+PyYAML>=5.4.0
+
+# Markdown processing for cheatsheet
+markdown2>=2.4.0
+
+# Cryptography for question encryption
+cryptography>=3.4.0
+
+# Note: These packages are available on all platforms (Windows, Linux, macOS)
+# and provide the same functionality across systems.
+#
+# Installation:
+# pip install -r requirements.txt
+#
+# Alternative installation methods:
+# 
+# Ubuntu/Debian:
+# sudo apt install python3-reportlab python3-pandas python3-yaml python3-markdown2 python3-cryptography
+#
+# Fedora/RHEL:
+# sudo dnf install python3-reportlab python3-pandas python3-PyYAML python3-markdown2 python3-cryptography
+#
+# Conda:
+# conda install reportlab pandas pyyaml markdown2 cryptography

@@ -1,0 +1,13 @@
+scripts/out
+scripts/__pycache__
+
+# Encrypted question bank files
+*.encrypted
+encrypted_questions/
+test_encrypted/
+test_decrypted/
+*_decrypted/
+*_encrypted/
+
+# Temporary test files
+test_*
