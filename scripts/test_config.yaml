@@ -26,8 +26,8 @@ question_selection:
   # Question type preference (to avoid duplicates with same hash)
   preferred_question_types:
   - multiple_choice
-  - short_answer
   - free_text
+  - short_answer
   - code
   - essay
   # Difficulty and Points Configuration
@@ -36,8 +36,8 @@ question_selection:
     difficulty_distribution:
       Trivial: 2
       Easy: 3
-      Medium: 2
-      Hard: 3
+      Medium: 3
+      Hard: 2
       Very Hard: 2
 
     # Points per question (all questions worth the same)

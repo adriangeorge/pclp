@@ -22,7 +22,7 @@ try:
     from reportlab.lib.pagesizes import A4
     from reportlab.lib import colors
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, Image, Table, TableStyle
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, PageBreak, Image, Table, TableStyle, Preformatted
     from reportlab.platypus.flowables import HRFlowable
     from reportlab.lib.units import inch, cm
     import markdown2
@@ -340,7 +340,7 @@ class TestGenerator:
         }
         body {
             font-family: 'Times New Roman', Times, serif;
-            font-size: 12pt;
+            font-size: 11pt;
             line-height: 1.4;
             color: #000;
         }
@@ -385,7 +385,7 @@ class TestGenerator:
         }
         code {
             font-family: 'Courier New', Courier, monospace;
-            background-color: #f5f5f5;
+            background-color: #FFFFFF;
             padding: 2pt;
             border-radius: 3pt;
         }
@@ -494,6 +494,43 @@ class TestGenerator:
                 pass
         
         return ''.join(html_parts)
+    
+    def process_code_blocks_for_pdf(self, text: str) -> str:
+        """Process code blocks and inline code for better PDF formatting."""
+        if not text:
+            return text
+        
+        # Handle multi-line code blocks - replace with placeholder for separate processing
+        def format_code_block(match):
+            # Instead of trying to format inline, mark it for separate processing
+            return ""
+        
+        # Process triple backtick code blocks
+        text = re.sub(r'```(?:python)?\s*\n(.*?)\n```', format_code_block, text, flags=re.DOTALL)
+        
+        # Handle inline code (single backticks) - keep these simple
+        def format_inline_code(match):
+            code = match.group(1)
+            # No need to escape < > for ReportLab Paragraph
+            return f'<font name="Courier">{code}</font>'
+        
+        text = re.sub(r'`([^`]+)`', format_inline_code, text)
+        
+        return text
+    
+    def extract_code_blocks(self, text: str) -> list:
+        """Extract code blocks from text for separate processing."""
+        code_blocks = []
+        
+        def collect_code_block(match):
+            code = match.group(1).strip()
+            code_blocks.append(code)
+            return ""  # Remove from text
+        
+        # Extract all code blocks
+        re.sub(r'```(?:python)?\s*\n(.*?)\n```', collect_code_block, text, flags=re.DOTALL)
+        
+        return code_blocks
     
     def convert_math_formulas(self, text: str) -> str:
         """Convert LaTeX math expressions to readable text format for PDF."""
@@ -623,9 +660,14 @@ class TestGenerator:
                 # Try to register DejaVu Sans which has full Romanian character support
                 import os
                 possible_fonts = [
-                    'C:/Windows/Fonts/DejaVuSans.ttf',
+                    'C:/Windows/Fonts/arial.ttf',
                     'C:/Windows/Fonts/Arial.ttf',
+                    'C:/Windows/Fonts/times.ttf',
+                    'C:/Windows/Fonts/timesnr.ttf',
+                    'C:/Windows/Fonts/TimesNewRoman.ttf',
                     'C:/Windows/Fonts/calibri.ttf',
+                    'C:/Windows/Fonts/Calibri.ttf',
+                    'C:/Windows/Fonts/DejaVuSans.ttf',
                     '/System/Library/Fonts/Arial.ttf',  # macOS
                     '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'  # Linux
                 ]
@@ -638,7 +680,7 @@ class TestGenerator:
                             font_name = 'UnicodeFont'
                             font_registered = True
                             break
-                        except:
+                        except Exception as e:
                             continue
                 
                 if not font_registered:
@@ -649,9 +691,9 @@ class TestGenerator:
             title_style = ParagraphStyle(
                 'CustomTitle',
                 parent=styles['Heading1'],
-                fontSize=18,
+                fontSize=14,  # Reduced from 18
                 fontName=font_name,
-                spaceAfter=12,
+                spaceAfter=8,  # Reduced from 12
                 alignment=1,  # Center
                 borderWidth=2,
                 borderColor=colors.black,
@@ -661,36 +703,36 @@ class TestGenerator:
             subtitle_style = ParagraphStyle(
                 'CustomSubtitle',
                 parent=styles['Heading2'],
-                fontSize=14,
+                fontSize=11,  # Reduced from 14
                 fontName=font_name,
-                spaceAfter=8,
+                spaceAfter=6,  # Reduced from 8
                 alignment=1  # Center
             )
             
             question_style = ParagraphStyle(
                 'Question',
                 parent=styles['Normal'],
-                fontSize=12,
+                fontSize=10,  # Reduced from 12
                 fontName=font_name,
-                spaceAfter=10,
-                spaceBefore=5
+                spaceAfter=6,  # Reduced from 10
+                spaceBefore=3  # Reduced from 5
             )
             
             option_style = ParagraphStyle(
                 'Option',
                 parent=styles['Normal'],
-                fontSize=11,
+                fontSize=9,  # Reduced from 11
                 fontName=font_name,
                 leftIndent=20,
-                spaceAfter=3
+                spaceAfter=2  # Reduced from 3
             )
             
             header_style = ParagraphStyle(
                 'Header',
                 parent=styles['Normal'],
-                fontSize=11,
+                fontSize=9,  # Reduced from 11
                 fontName=font_name,
-                spaceAfter=6,
+                spaceAfter=4,  # Reduced from 6
                 alignment=1  # Center
             )
             
@@ -787,7 +829,7 @@ class TestGenerator:
             # story.append(Paragraph(f"<b>{university_header}</b>", header_style))
             # story.append(Paragraph(f"<b>{faculty_header}</b>", header_style))
             story.append(HRFlowable(width="100%"))
-            story.append(Spacer(1, 12))
+            story.append(Spacer(1, 6))  # Reduced from 12
             
             # Parse the markdown content to extract title, questions, etc.
             lines = html_content.split('\n')
@@ -848,11 +890,15 @@ class TestGenerator:
                 
                 question_text = safe_encode(question_text)
                 
+                # Extract code blocks before processing
+                original_question = question['question']
+                code_blocks = self.extract_code_blocks(original_question)
+                
+                # Process code blocks for better formatting (will replace with placeholders)
+                question_text = self.process_code_blocks_for_pdf(question_text)
+                
                 # Convert LaTeX math expressions to readable format
                 question_text = self.convert_math_formulas(question_text)
-                
-                # Convert markdown code to basic formatting
-                question_text = re.sub(r'`([^`]+)`', r'<font name="Courier">\1</font>', question_text)
                 
                 # Add labels if requested
                 format_config = self.config['question_format']
@@ -875,6 +921,48 @@ class TestGenerator:
                     safe_question = safe_encode(full_question)
                     story.append(Paragraph(safe_question, question_style))
                 
+                # Add code blocks as separate, properly formatted elements
+                for code_block in code_blocks:
+                    story.append(Spacer(1, 4))
+                    
+                    # Create a proper code style with background
+                    code_style = ParagraphStyle(
+                        'CodeBlock',
+                        parent=question_style,
+                        fontName='Courier',
+                        fontSize=8,  # Reduced from 9
+                        leftIndent=15,  # Reduced from 20
+                        rightIndent=15,  # Reduced from 20
+                        spaceBefore=2,  # Reduced from 4
+                        spaceAfter=2,  # Reduced from 4
+                        borderWidth=1,
+                        borderColor=colors.darkgrey,
+                        borderPadding=4,  # Reduced from 8
+                        backColor=colors.white,
+                        alignment=0  # Left alignment
+                    )
+                    
+                    # Split code into lines for proper formatting
+                    lines = code_block.split('\n')
+                    formatted_lines = []
+                    for line in lines:
+                        if line.strip():  # Skip empty lines
+                            # Preserve leading whitespace (indentation) but remove trailing
+                            formatted_line = line.rstrip()
+                            # Convert leading spaces to non-breaking spaces to preserve indentation
+                            leading_spaces = len(formatted_line) - len(formatted_line.lstrip())
+                            if leading_spaces > 0:
+                                indent = '&nbsp;' * leading_spaces
+                                content = formatted_line.lstrip()
+                                formatted_lines.append(f'{indent}{content}')
+                            else:
+                                formatted_lines.append(formatted_line)
+                    
+                    # Create the formatted code text
+                    formatted_code = '<br/>'.join(formatted_lines)
+                    story.append(Paragraph(formatted_code, code_style))
+                    story.append(Spacer(1, 2))
+                
                 # Add multiple choice options with improved styling
                 if question['type'] == 'multiple_choice' and question.get('options'):
                     try:
@@ -885,19 +973,14 @@ class TestGenerator:
                                 random.shuffle(options)
                             
                             # Add spacing before options
-                            story.append(Spacer(1, 4))  # Reduced from 8
+                            story.append(Spacer(1, 2))  # Reduced from 8
                             
                             # Add each option with simple formatting
                             for j, option in enumerate(options):
                                 option_text = safe_encode(str(option))
                                 
-                                # Escape HTML entities to prevent parsing issues
-                                option_text = option_text.replace('&', '&amp;')
-                                option_text = option_text.replace('<', '&lt;')
-                                option_text = option_text.replace('>', '&gt;')
-                                
-                                # Convert markdown code to basic formatting
-                                option_text = re.sub(r'`([^`]+)`', r'<font name="Courier">\1</font>', option_text)
+                                # Process code blocks for better formatting in options too
+                                option_text = self.process_code_blocks_for_pdf(option_text)
                                 
                                 # Clean option layout without checkbox
                                 option_line = f"{chr(ord('a') + j)}) {option_text}"
@@ -910,14 +993,14 @@ class TestGenerator:
                 elif question['type'] in ['short_answer', 'essay', 'code', 'free_text', 'free_text_answer']:
                     # Add specific instructions based on question type
                     if question['type'] == 'code':
-                        instruction_text = "<b>Răspuns:</b> <i>Scrie codul pentru rezolvarea exercițiului</i>"
+                        instruction_text = "<b>Pe foaia de răspuns, scrie <b>codul</b> pentru rezolvarea exercițiului!</b>"
                     elif question['type'] in ['free_text', 'free_text_answer']:
-                        instruction_text = "<b>Răspuns:</b> <i>Scrie în propriile cuvinte (sau cod) cum ai rezolva exercițiul</i>"
+                        instruction_text = "<b>Pe foaia de răspuns, scrie <b>în cuvintele tale</b> cum se rezolvă exercițiul!</b>"
                     else:
                         instruction_text = "<b>Răspuns:</b>"
                     
                     story.append(Paragraph(instruction_text, question_style))
-                    story.append(Spacer(1, 3))  # Reduced from 6
+                    story.append(Spacer(1, 2))  # Reduced from 6
                     
                     # Create visual answer boxes based on question type
                     if question['type'] in ['free_text', 'free_text_answer']:
@@ -936,12 +1019,12 @@ class TestGenerator:
                             ('TOPPADDING', (0, 0), (-1, -1), 6),
                             ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
                         ]))
-                        story.append(answer_table)
+                        # story.append(answer_table)
                         
                     elif question['type'] == 'short_answer':
                         # Larger rectangle for short answers (about 3cm height)
                         box_width = 15*cm
-                        box_height = 1.5*cm
+                        box_height = 1*cm
                         
                         # Create a table with a single bordered cell as the answer box
                         answer_box_data = [[""]]  # Empty cell for writing
@@ -972,15 +1055,15 @@ class TestGenerator:
                             ('TOPPADDING', (0, 0), (-1, -1), 6),
                             ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
                         ]))
-                        story.append(answer_table)
+                        # story.append(answer_table)
                 
-                story.append(Spacer(1, 6))  # Reduced space between questions
+                story.append(Spacer(1, 2))  # Further reduced space between questions
             
             # Add footer
             if self.config.get('footer', {}).get('include', False):
                 footer_content = self.config['footer'].get('content', '')
                 story.append(HRFlowable(width="100%"))
-                story.append(Spacer(1, 12))
+                story.append(Spacer(1, 6))
                 
                 footer_lines = footer_content.split('\n')
                 for line in footer_lines:
